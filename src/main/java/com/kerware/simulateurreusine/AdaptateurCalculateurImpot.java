@@ -2,7 +2,6 @@ package com.kerware.simulateurreusine;
 
 import com.kerware.simulateur.ICalculateurImpot;
 import com.kerware.simulateur.SituationFamiliale;
-import com.kerware.simulateurreusine.legacy.SimulateurLegacy;
 
 public class AdaptateurCalculateurImpot implements ICalculateurImpot {
 
@@ -12,7 +11,7 @@ public class AdaptateurCalculateurImpot implements ICalculateurImpot {
     private int nbEnfantsSituationHandicap;
     private boolean parentIsole;
 
-    private int impotSurRevenuNet;
+    private SimulateurReusine simulateurReusine;
 
     @Override
     public void setRevenusNet(int rn) {
@@ -41,8 +40,8 @@ public class AdaptateurCalculateurImpot implements ICalculateurImpot {
 
     @Override
     public void calculImpotSurRevenuNet() {
-        SimulateurLegacy simulateurLegacy = new SimulateurLegacy();
-        this.impotSurRevenuNet = (int) simulateurLegacy.calculImpot(
+        simulateurReusine = new SimulateurReusine();
+        simulateurReusine.calculer(
                 revenusNet,
                 situationFamiliale,
                 nbEnfantsACharge,
@@ -53,31 +52,31 @@ public class AdaptateurCalculateurImpot implements ICalculateurImpot {
 
     @Override
     public int getRevenuFiscalReference() {
-        throw new UnsupportedOperationException("Sera implémenté pendant le réusinage.");
+        return simulateurReusine.getRevenuFiscalReference();
     }
 
     @Override
     public int getAbattement() {
-        throw new UnsupportedOperationException("Sera implémenté pendant le réusinage.");
+        return simulateurReusine.getAbattement();
     }
 
     @Override
     public int getNbPartsFoyerFiscal() {
-        throw new UnsupportedOperationException("Sera implémenté pendant le réusinage.");
+        return simulateurReusine.getNbDemiPartsFoyerFiscal();
     }
 
     @Override
     public int getImpotAvantDecote() {
-        throw new UnsupportedOperationException("Sera implémenté pendant le réusinage.");
+        return simulateurReusine.getImpotAvantDecote();
     }
 
     @Override
     public int getDecote() {
-        throw new UnsupportedOperationException("Sera implémenté pendant le réusinage.");
+        return simulateurReusine.getDecote();
     }
 
     @Override
     public int getImpotSurRevenuNet() {
-        return impotSurRevenuNet;
+        return simulateurReusine.getImpotSurRevenuNet();
     }
 }
