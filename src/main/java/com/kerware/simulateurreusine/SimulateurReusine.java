@@ -4,8 +4,6 @@ import com.kerware.simulateur.SituationFamiliale;
 
 /**
  * Version réusinée du simulateur.
- * Le calcul est découpé en plusieurs méthodes métier pour améliorer la lisibilité
- * et limiter les responsabilités de chaque méthode.
  */
 public class SimulateurReusine {
 
@@ -26,7 +24,7 @@ public class SimulateurReusine {
     private int impotSurRevenuNet;
 
     public SimulateurReusine() {
-        this(ParametresImpot.creerParametresLegacy());
+        this(ParametresImpot.creerParametres2025());
     }
 
     public SimulateurReusine(ParametresImpot parametresImpot) {
@@ -77,36 +75,23 @@ public class SimulateurReusine {
         return (int) Math.round(abattementCalcule);
     }
 
-    /**
-     * On reproduit volontairement le comportement du legacy à cette étape
-     * pour conserver les mêmes résultats sur les tests de non-régression.
-     */
     private double calculerNbPartsDeclarants() {
-        double parts = 0;
+        if (situationFamiliale == null) {
+            throw new IllegalArgumentException("La situation familiale est obligatoire.");
+        }
 
         switch (situationFamiliale) {
             case CELIBATAIRE:
-                parts = 1;
-                break;
-            case MARIE:
-                parts = 2;
-                break;
             case DIVORCE:
-                parts = 1;
-                break;
+                return 1;
+            case MARIE:
+            case PACSE:
+                return 2;
             case VEUF:
-                if (nbEnfantsACharge == 0) {
-                    parts = 1;
-                } else {
-                    parts = 2;
-                }
-                parts = 1; // comportement identique au legacy
-                break;
+                return nbEnfantsACharge > 0 ? 2 : 1;
             default:
-                break;
+                throw new IllegalArgumentException("Situation familiale inconnue.");
         }
-
-        return parts;
     }
 
     private double calculerNbPartsFoyer() {
@@ -205,11 +190,6 @@ public class SimulateurReusine {
         return impotSurRevenuNet;
     }
 
-    /**
-     * L'interface historique impose un int.
-     * On renvoie ici le nombre de demi-parts pour ne pas perdre d'information.
-     * Exemples : 2 parts -> 4 ; 2,5 parts -> 5.
-     */
     public int getNbDemiPartsFoyerFiscal() {
         return (int) Math.round(nbPartsFoyer * 2);
     }

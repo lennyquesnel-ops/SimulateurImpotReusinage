@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AdaptateurCalculateurImpotTest {
 
     @Test
-    void celibataireSansEnfantAvec20000EurosDonne199Euros() {
+    void celibataireSansEnfantAvec20000EurosDonne150Euros() {
         AdaptateurCalculateurImpot calculateur = creerCalculateur(
                 20000,
                 SituationFamiliale.CELIBATAIRE,
@@ -19,11 +19,11 @@ class AdaptateurCalculateurImpotTest {
 
         calculateur.calculImpotSurRevenuNet();
 
-        assertEquals(199, calculateur.getImpotSurRevenuNet());
+        assertEquals(150, calculateur.getImpotSurRevenuNet());
     }
 
     @Test
-    void celibataireSansEnfantAvec40000EurosDonne4086Euros() {
+    void celibataireSansEnfantAvec40000EurosDonne3965Euros() {
         AdaptateurCalculateurImpot calculateur = creerCalculateur(
                 40000,
                 SituationFamiliale.CELIBATAIRE,
@@ -34,11 +34,11 @@ class AdaptateurCalculateurImpotTest {
 
         calculateur.calculImpotSurRevenuNet();
 
-        assertEquals(4086, calculateur.getImpotSurRevenuNet());
+        assertEquals(3965, calculateur.getImpotSurRevenuNet());
     }
 
     @Test
-    void marieSansEnfantAvec40000EurosDonne698Euros() {
+    void marieSansEnfantAvec40000EurosDonne609Euros() {
         AdaptateurCalculateurImpot calculateur = creerCalculateur(
                 40000,
                 SituationFamiliale.MARIE,
@@ -49,11 +49,11 @@ class AdaptateurCalculateurImpotTest {
 
         calculateur.calculImpotSurRevenuNet();
 
-        assertEquals(698, calculateur.getImpotSurRevenuNet());
+        assertEquals(609, calculateur.getImpotSurRevenuNet());
     }
 
     @Test
-    void divorceParentIsoleAvecUnEnfantEt40000EurosDonne1269Euros() {
+    void divorceParentIsoleAvecUnEnfantEt40000EurosDonne1190Euros() {
         AdaptateurCalculateurImpot calculateur = creerCalculateur(
                 40000,
                 SituationFamiliale.DIVORCE,
@@ -64,11 +64,11 @@ class AdaptateurCalculateurImpotTest {
 
         calculateur.calculImpotSurRevenuNet();
 
-        assertEquals(1269, calculateur.getImpotSurRevenuNet());
+        assertEquals(1190, calculateur.getImpotSurRevenuNet());
     }
 
     @Test
-    void marieAvecUnEnfantDontUnHandicapeEt70000EurosDonne3203Euros() {
+    void marieAvecUnEnfantDontUnHandicapeEt70000EurosDonne3085Euros() {
         AdaptateurCalculateurImpot calculateur = creerCalculateur(
                 70000,
                 SituationFamiliale.MARIE,
@@ -79,7 +79,22 @@ class AdaptateurCalculateurImpotTest {
 
         calculateur.calculImpotSurRevenuNet();
 
-        assertEquals(3203, calculateur.getImpotSurRevenuNet());
+        assertEquals(3085, calculateur.getImpotSurRevenuNet());
+    }
+
+    @Test
+    void pacseSansEnfantAvec40000EurosDonne609Euros() {
+        AdaptateurCalculateurImpot calculateur = creerCalculateur(
+                40000,
+                SituationFamiliale.PACSE,
+                0,
+                0,
+                false
+        );
+
+        calculateur.calculImpotSurRevenuNet();
+
+        assertEquals(609, calculateur.getImpotSurRevenuNet());
     }
 
     private AdaptateurCalculateurImpot creerCalculateur(

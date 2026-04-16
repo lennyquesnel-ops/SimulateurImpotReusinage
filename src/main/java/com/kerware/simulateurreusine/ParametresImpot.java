@@ -68,6 +68,22 @@ public class ParametresImpot {
         );
     }
 
+    public static ParametresImpot creerParametres2025() {
+        return new ParametresImpot(
+                new int[]{0, 11497, 29315, 83823, 180294, Integer.MAX_VALUE},
+                new double[]{0.0, 0.11, 0.30, 0.41, 0.45},
+                504,
+                14426,
+                0.10,
+                1791,
+                1964,
+                3249,
+                889,
+                1470,
+                0.4525
+        );
+    }
+
     public int[] getLimitesTranches() {
         return Arrays.copyOf(limitesTranches, limitesTranches.length);
     }
