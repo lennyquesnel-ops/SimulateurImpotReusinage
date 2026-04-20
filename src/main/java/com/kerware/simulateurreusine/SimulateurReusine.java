@@ -5,7 +5,13 @@ import com.kerware.simulateur.SituationFamiliale;
 /**
  * Version réusinée du simulateur.
  */
-public class SimulateurReusine {
+public final class SimulateurReusine {
+
+    private static final double UNE_PART = 1.0;
+    private static final double DEUX_PARTS = 2.0;
+    private static final double DEMI_PART = 0.5;
+    private static final int UNE_PART_EN_DEMI_PARTS = 2;
+    private static final int DEUX_ENFANTS = 2;
 
     private final ParametresImpot parametresImpot;
 
@@ -27,21 +33,21 @@ public class SimulateurReusine {
         this(ParametresImpot.creerParametres2025());
     }
 
-    public SimulateurReusine(ParametresImpot parametresImpot) {
-        this.parametresImpot = parametresImpot;
+    public SimulateurReusine(ParametresImpot parametres) {
+        this.parametresImpot = parametres;
     }
 
-    public void calculer(int revenuNet,
-                         SituationFamiliale situationFamiliale,
-                         int nbEnfantsACharge,
-                         int nbEnfantsSituationHandicap,
-                         boolean parentIsole) {
+    public void calculer(int revenuNetImposable,
+                         SituationFamiliale situation,
+                         int nombreEnfantsACharge,
+                         int nombreEnfantsSituationHandicap,
+                         boolean estParentIsole) {
 
-        this.revenuNet = revenuNet;
-        this.situationFamiliale = situationFamiliale;
-        this.nbEnfantsACharge = nbEnfantsACharge;
-        this.nbEnfantsSituationHandicap = nbEnfantsSituationHandicap;
-        this.parentIsole = parentIsole;
+        this.revenuNet = revenuNetImposable;
+        this.situationFamiliale = situation;
+        this.nbEnfantsACharge = nombreEnfantsACharge;
+        this.nbEnfantsSituationHandicap = nombreEnfantsSituationHandicap;
+        this.parentIsole = estParentIsole;
 
         this.abattement = calculerAbattement();
         this.revenuFiscalReference = revenuNet - abattement;
@@ -49,8 +55,14 @@ public class SimulateurReusine {
         this.nbPartsDeclarants = calculerNbPartsDeclarants();
         this.nbPartsFoyer = calculerNbPartsFoyer();
 
-        int impotAvecPartsDeclarants = calculerImpotProgressif(revenuFiscalReference, nbPartsDeclarants);
-        int impotAvecPartsFoyer = calculerImpotProgressif(revenuFiscalReference, nbPartsFoyer);
+        int impotAvecPartsDeclarants = calculerImpotProgressif(
+                revenuFiscalReference,
+                nbPartsDeclarants
+        );
+        int impotAvecPartsFoyer = calculerImpotProgressif(
+                revenuFiscalReference,
+                nbPartsFoyer
+        );
 
         this.impotAvantDecote = appliquerPlafonnementQuotientFamilial(
                 impotAvecPartsDeclarants,
@@ -83,12 +95,12 @@ public class SimulateurReusine {
         switch (situationFamiliale) {
             case CELIBATAIRE:
             case DIVORCE:
-                return 1;
+                return UNE_PART;
             case MARIE:
             case PACSE:
-                return 2;
+                return DEUX_PARTS;
             case VEUF:
-                return nbEnfantsACharge > 0 ? 2 : 1;
+                return nbEnfantsACharge > 0 ? DEUX_PARTS : UNE_PART;
             default:
                 throw new IllegalArgumentException("Situation familiale inconnue.");
         }
@@ -97,23 +109,23 @@ public class SimulateurReusine {
     private double calculerNbPartsFoyer() {
         double parts;
 
-        if (nbEnfantsACharge <= 2) {
-            parts = nbPartsDeclarants + (nbEnfantsACharge * 0.5);
+        if (nbEnfantsACharge <= DEUX_ENFANTS) {
+            parts = nbPartsDeclarants + (nbEnfantsACharge * DEMI_PART);
         } else {
-            parts = nbPartsDeclarants + 1.0 + (nbEnfantsACharge - 2);
+            parts = nbPartsDeclarants + UNE_PART + (nbEnfantsACharge - DEUX_ENFANTS);
         }
 
         if (parentIsole && nbEnfantsACharge > 0) {
-            parts += 0.5;
+            parts += DEMI_PART;
         }
 
-        parts += nbEnfantsSituationHandicap * 0.5;
+        parts += nbEnfantsSituationHandicap * DEMI_PART;
 
         return parts;
     }
 
-    private int calculerImpotProgressif(int revenuFiscalReference, double nbParts) {
-        double revenuParPart = revenuFiscalReference / nbParts;
+    private int calculerImpotProgressif(int revenuFiscalRef, double nbParts) {
+        double revenuParPart = revenuFiscalRef / nbParts;
         double impot = 0;
 
         int[] limites = parametresImpot.getLimitesTranches();
@@ -126,9 +138,9 @@ public class SimulateurReusine {
             if (revenuParPart >= borneBasse && revenuParPart < borneHaute) {
                 impot += (revenuParPart - borneBasse) * taux[i];
                 break;
-            } else {
-                impot += (borneHaute - borneBasse) * taux[i];
             }
+
+            impot += (borneHaute - borneBasse) * taux[i];
         }
 
         return (int) Math.round(impot * nbParts);
@@ -139,7 +151,7 @@ public class SimulateurReusine {
 
         double baisseImpot = impotAvecPartsDeclarants - impotAvecPartsFoyer;
         double ecartParts = nbPartsFoyer - nbPartsDeclarants;
-        double plafond = (ecartParts / 0.5) * parametresImpot.getPlafondDemiPart();
+        double plafond = (ecartParts / DEMI_PART) * parametresImpot.getPlafondDemiPart();
 
         if (baisseImpot >= plafond) {
             return (int) Math.round(impotAvecPartsDeclarants - plafond);
@@ -151,12 +163,14 @@ public class SimulateurReusine {
     private int calculerDecote() {
         double montantDecote = 0;
 
-        if (nbPartsDeclarants == 1 && impotAvantDecote < parametresImpot.getSeuilDecoteDeclarantSeul()) {
+        if (nbPartsDeclarants == UNE_PART
+                && impotAvantDecote < parametresImpot.getSeuilDecoteDeclarantSeul()) {
             montantDecote = parametresImpot.getDecoteMaxDeclarantSeul()
                     - (impotAvantDecote * parametresImpot.getTauxDecote());
         }
 
-        if (nbPartsDeclarants == 2 && impotAvantDecote < parametresImpot.getSeuilDecoteDeclarantCouple()) {
+        if (nbPartsDeclarants == DEUX_PARTS
+                && impotAvantDecote < parametresImpot.getSeuilDecoteDeclarantCouple()) {
             montantDecote = parametresImpot.getDecoteMaxDeclarantCouple()
                     - (impotAvantDecote * parametresImpot.getTauxDecote());
         }
@@ -191,6 +205,6 @@ public class SimulateurReusine {
     }
 
     public int getNbDemiPartsFoyerFiscal() {
-        return (int) Math.round(nbPartsFoyer * 2);
+        return (int) Math.round(nbPartsFoyer * UNE_PART_EN_DEMI_PARTS);
     }
 }

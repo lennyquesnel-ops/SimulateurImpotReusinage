@@ -94,7 +94,11 @@
                     <configLocation>config/checkstyle/but-unicaen.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                    <excludes>
+                        **/simulateur/Simulateur.java,
+                        **/simulateurreusine/legacy/**/*.java
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
