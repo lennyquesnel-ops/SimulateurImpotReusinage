@@ -10,6 +10,7 @@ class SimulateurReusineTest {
 
     @Test
     void calculeLesValeursMetierPourUnCelibataireSansEnfant() {
+        // EXIG-SIM-01, EXIG-SIM-02, EXIG-SIM-04, EXIG-SIM-06
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(20000, SituationFamiliale.CELIBATAIRE, 0, 0, false);
@@ -24,6 +25,7 @@ class SimulateurReusineTest {
 
     @Test
     void calculeLesValeursMetierPourUnCoupleMarieSansEnfant() {
+        // EXIG-SIM-01, EXIG-SIM-02, EXIG-SIM-04, EXIG-SIM-06
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(40000, SituationFamiliale.MARIE, 0, 0, false);
@@ -38,6 +40,7 @@ class SimulateurReusineTest {
 
     @Test
     void appliqueLAbattementMinimumPourUnPetitRevenu() {
+        // EXIG-SIM-01
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(3000, SituationFamiliale.CELIBATAIRE, 0, 0, false);
@@ -49,6 +52,7 @@ class SimulateurReusineTest {
 
     @Test
     void appliqueLAbattementMaximumPourUnTresGrandRevenu() {
+        // EXIG-SIM-01
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(200000, SituationFamiliale.CELIBATAIRE, 0, 0, false);
@@ -60,6 +64,7 @@ class SimulateurReusineTest {
 
     @Test
     void parentIsoleAjouteUneDemiPartSupplementaire() {
+        // EXIG-SIM-03
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(40000, SituationFamiliale.DIVORCE, 1, 0, true);
@@ -72,6 +77,7 @@ class SimulateurReusineTest {
 
     @Test
     void troisEnfantsAugmententFortementLeNombreDeParts() {
+        // EXIG-SIM-03 et EXIG-SIM-05
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(60000, SituationFamiliale.MARIE, 3, 0, false);
@@ -84,6 +90,7 @@ class SimulateurReusineTest {
 
     @Test
     void pacseEstTraiteCommeUnCouple() {
+        // EXIG-SIM-02
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(40000, SituationFamiliale.PACSE, 0, 0, false);
@@ -94,6 +101,7 @@ class SimulateurReusineTest {
 
     @Test
     void veufAvecEnfantConserveDeuxPartsDeclarants() {
+        // EXIG-SIM-02 et EXIG-SIM-03
         SimulateurReusine simulateur = new SimulateurReusine();
 
         simulateur.calculer(50000, SituationFamiliale.VEUF, 1, 0, false);
@@ -106,9 +114,50 @@ class SimulateurReusineTest {
 
     @Test
     void refuseUneSituationFamilialeAbsente() {
+        // EXIG-SIM-07
         SimulateurReusine simulateur = new SimulateurReusine();
 
         assertThrows(IllegalArgumentException.class,
                 () -> simulateur.calculer(20000, null, 0, 0, false));
+    }
+
+    @Test
+    void refuseUnRevenuNegatif() {
+        // EXIG-SIM-07
+        SimulateurReusine simulateur = new SimulateurReusine();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> simulateur.calculer(-1, SituationFamiliale.CELIBATAIRE,
+                        0, 0, false));
+    }
+
+    @Test
+    void refuseUnNombreEnfantsNegatif() {
+        // EXIG-SIM-07
+        SimulateurReusine simulateur = new SimulateurReusine();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> simulateur.calculer(20000, SituationFamiliale.CELIBATAIRE,
+                        -1, 0, false));
+    }
+
+    @Test
+    void refuseUnNombreEnfantsHandicapesNegatif() {
+        // EXIG-SIM-07
+        SimulateurReusine simulateur = new SimulateurReusine();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> simulateur.calculer(20000, SituationFamiliale.CELIBATAIRE,
+                        1, -1, false));
+    }
+
+    @Test
+    void refusePlusDEnfantsHandicapesQueDEnfantsACharge() {
+        // EXIG-SIM-07
+        SimulateurReusine simulateur = new SimulateurReusine();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> simulateur.calculer(20000, SituationFamiliale.CELIBATAIRE,
+                        1, 2, false));
     }
 }

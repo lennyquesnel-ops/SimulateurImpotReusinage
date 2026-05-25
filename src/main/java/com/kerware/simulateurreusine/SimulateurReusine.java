@@ -10,6 +10,7 @@ public final class SimulateurReusine {
     private static final double UNE_PART = 1.0;
     private static final double DEUX_PARTS = 2.0;
     private static final double DEMI_PART = 0.5;
+    private static final int ZERO = 0;
     private static final int UNE_PART_EN_DEMI_PARTS = 2;
     private static final int DEUX_ENFANTS = 2;
 
@@ -49,12 +50,23 @@ public final class SimulateurReusine {
         this.nbEnfantsSituationHandicap = nombreEnfantsSituationHandicap;
         this.parentIsole = estParentIsole;
 
+        // EXIG-SIM-07 : le simulateur refuse les entrées incohérentes.
+        validerEntrees();
+
+        // EXIG-SIM-01 : le revenu fiscal de référence est calculé après
+        // application de l'abattement de 10 % borné par un minimum et un maximum.
         this.abattement = calculerAbattement();
         this.revenuFiscalReference = revenuNet - abattement;
 
+        // EXIG-SIM-02 : le nombre de parts des déclarants dépend
+        // de la situation familiale.
         this.nbPartsDeclarants = calculerNbPartsDeclarants();
+
+        // EXIG-SIM-03 : les parts du foyer prennent en compte les enfants,
+        // le parent isolé et la situation de handicap.
         this.nbPartsFoyer = calculerNbPartsFoyer();
 
+        // EXIG-SIM-04 : l'impôt brut est calculé avec le barème progressif.
         int impotAvecPartsDeclarants = calculerImpotProgressif(
                 revenuFiscalReference,
                 nbPartsDeclarants
@@ -64,13 +76,46 @@ public final class SimulateurReusine {
                 nbPartsFoyer
         );
 
+        // EXIG-SIM-05 : l'avantage du quotient familial est plafonné.
         this.impotAvantDecote = appliquerPlafonnementQuotientFamilial(
                 impotAvecPartsDeclarants,
                 impotAvecPartsFoyer
         );
 
+        // EXIG-SIM-06 : une décote peut réduire l'impôt final.
         this.decote = calculerDecote();
         this.impotSurRevenuNet = impotAvantDecote - decote;
+    }
+
+    private void validerEntrees() {
+        if (revenuNet < ZERO) {
+            throw new IllegalArgumentException(
+                    "Le revenu net imposable ne peut pas être négatif."
+            );
+        }
+
+        if (situationFamiliale == null) {
+            throw new IllegalArgumentException("La situation familiale est obligatoire.");
+        }
+
+        if (nbEnfantsACharge < ZERO) {
+            throw new IllegalArgumentException(
+                    "Le nombre d'enfants à charge ne peut pas être négatif."
+            );
+        }
+
+        if (nbEnfantsSituationHandicap < ZERO) {
+            throw new IllegalArgumentException(
+                    "Le nombre d'enfants en situation de handicap ne peut pas être négatif."
+            );
+        }
+
+        if (nbEnfantsSituationHandicap > nbEnfantsACharge) {
+            throw new IllegalArgumentException(
+                    "Le nombre d'enfants handicapés ne peut pas dépasser "
+                            + "le nombre d'enfants à charge."
+            );
+        }
     }
 
     private int calculerAbattement() {
@@ -88,10 +133,6 @@ public final class SimulateurReusine {
     }
 
     private double calculerNbPartsDeclarants() {
-        if (situationFamiliale == null) {
-            throw new IllegalArgumentException("La situation familiale est obligatoire.");
-        }
-
         switch (situationFamiliale) {
             case CELIBATAIRE:
             case DIVORCE:
@@ -100,7 +141,7 @@ public final class SimulateurReusine {
             case PACSE:
                 return DEUX_PARTS;
             case VEUF:
-                return nbEnfantsACharge > 0 ? DEUX_PARTS : UNE_PART;
+                return nbEnfantsACharge > ZERO ? DEUX_PARTS : UNE_PART;
             default:
                 throw new IllegalArgumentException("Situation familiale inconnue.");
         }
@@ -115,7 +156,7 @@ public final class SimulateurReusine {
             parts = nbPartsDeclarants + UNE_PART + (nbEnfantsACharge - DEUX_ENFANTS);
         }
 
-        if (parentIsole && nbEnfantsACharge > 0) {
+        if (parentIsole && nbEnfantsACharge > ZERO) {
             parts += DEMI_PART;
         }
 
